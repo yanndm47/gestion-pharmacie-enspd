@@ -159,3 +159,7 @@ Pour le régénérer ou changer les volumes : `python tools/generer_donnees.py s
 5 bis. Pharmacien : *Ventes* > sélectionner une vente > *Annuler la vente* ; vérifier que le stock est remonté dans *Stock*.
 6. Caissier : vérifier qu'un médicament sur ordonnance est refusé et que les onglets Commandes, Ordonnances et Comptes n'existent pas.
 7. Administrateur : créer un compte caissier, se reconnecter avec ce compte, changer son mot de passe, puis le désactiver. Vérifier qu'on ne peut pas désactiver le dernier administrateur.
+
+# gestion-pharmacie-enspd
+Logiciel de gestion d'une pharmacie en python avec une base de données MYSQL dans le cadre des travaux du cours de BASE DE DONNEES encadré par Monsieur ETOGUE D. SAINT-CLAIR à l'Ecole Nationale Supérieure Polytechnique de DOUALA
+
