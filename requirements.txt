@@ -1,0 +1,2 @@
+# Dépendances externes de l'application (Tkinter est fourni avec Python).
+mysql-connector-python>=8.0
