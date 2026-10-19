@@ -22,7 +22,7 @@ class ComptesView(ttk.Frame):
 
         barre = ttk.Frame(self)
         barre.grid(row=0, column=0, sticky="ew", pady=(0, 6))
-        ttk.Button(barre, text="Nouveau compte", command=self.nouveau).pack(side="left")
+        ttk.Button(barre, text="Nouveau compte", style="Primary.TButton", command=self.nouveau).pack(side="left")
         ttk.Button(barre, text="Modifier", command=self.modifier).pack(side="left", padx=6)
         ttk.Button(barre, text="Désactiver / Réactiver", command=self.basculer).pack(side="left")
         ttk.Button(barre, text="Réinitialiser le mot de passe", command=self.reinitialiser).pack(side="left", padx=6)

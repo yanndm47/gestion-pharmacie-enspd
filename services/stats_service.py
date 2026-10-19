@@ -106,16 +106,26 @@ def _lire(user, sql: str, params: tuple = ()) -> list:
 
 
 def ca_par_mois(user) -> list:
-    """Chiffre d'affaires par mois et évolution (requête Q2)."""
+    """Chiffre d'affaires par mois et évolution (requête Q2).
+
+    Compatible MySQL 5.7, MySQL 8 et MariaDB : le mois précédent est retrouvé par une
+    auto-jointure, sans fonction de fenêtrage (LAG) et sans signe % dans le SQL."""
     return _lire(user, """
-        SELECT mois, chiffre_affaires,
-               LAG(chiffre_affaires) OVER (ORDER BY mois) AS ca_mois_precedent,
-               ROUND(100 * (chiffre_affaires - LAG(chiffre_affaires) OVER (ORDER BY mois))
-                         / NULLIF(LAG(chiffre_affaires) OVER (ORDER BY mois), 0), 1) AS evolution_pct
-          FROM (SELECT DATE_FORMAT(date_vente, '%Y-%m') AS mois, SUM(total) AS chiffre_affaires
+        SELECT CONCAT(t.annee, '-', LPAD(t.mois_num, 2, '0')) AS mois,
+               t.chiffre_affaires,
+               p.chiffre_affaires AS ca_mois_precedent,
+               ROUND(100 * (t.chiffre_affaires - p.chiffre_affaires)
+                         / NULLIF(p.chiffre_affaires, 0), 1) AS evolution_pct
+          FROM (SELECT YEAR(date_vente) AS annee, MONTH(date_vente) AS mois_num,
+                       SUM(total) AS chiffre_affaires
                   FROM vente WHERE statut = 'validee'
-                 GROUP BY DATE_FORMAT(date_vente, '%Y-%m')) t
-         ORDER BY mois""")
+                 GROUP BY YEAR(date_vente), MONTH(date_vente)) t
+          LEFT JOIN (SELECT YEAR(date_vente) AS annee, MONTH(date_vente) AS mois_num,
+                            SUM(total) AS chiffre_affaires
+                       FROM vente WHERE statut = 'validee'
+                      GROUP BY YEAR(date_vente), MONTH(date_vente)) p
+                 ON p.annee * 12 + p.mois_num = t.annee * 12 + t.mois_num - 1
+         ORDER BY t.annee, t.mois_num""")
 
 
 def ca_par_semaine(user) -> list:
@@ -146,7 +156,8 @@ def ventes_par_personnel(user) -> list:
     return _lire(user, """
         SELECT p.nom, p.prenom, p.role, COUNT(v.id_vente) AS nb_ventes,
                COALESCE(SUM(v.total), 0) AS montant,
-               ROUND(100 * COALESCE(SUM(v.total), 0) / NULLIF(SUM(SUM(v.total)) OVER (), 0), 1) AS part_ca_pct
+               ROUND(100 * COALESCE(SUM(v.total), 0)
+                         / NULLIF((SELECT SUM(total) FROM vente WHERE statut = 'validee'), 0), 1) AS part_ca_pct
           FROM personnel p
           LEFT JOIN vente v ON v.id_personnel = p.id_personnel AND v.statut = 'validee'
          GROUP BY p.id_personnel, p.nom, p.prenom, p.role
@@ -184,11 +195,11 @@ def performance_fournisseurs(user) -> list:
 def ventes_ordonnance_libre(user) -> list:
     """Ventes sur ordonnance et ventes libres (requête Q11)."""
     return _lire(user, """
-        SELECT CASE WHEN id_ordonnance IS NULL THEN 'Vente libre' ELSE 'Vente sur ordonnance' END AS type_vente,
+        SELECT IF(id_ordonnance IS NULL, 'Vente libre', 'Vente sur ordonnance') AS type_vente,
                COUNT(*) AS nb_ventes, SUM(total) AS chiffre_affaires,
-               ROUND(100 * COUNT(*) / SUM(COUNT(*)) OVER (), 1) AS part_ventes_pct
+               ROUND(100 * COUNT(*) / (SELECT COUNT(*) FROM vente WHERE statut = 'validee'), 1) AS part_ventes_pct
           FROM vente WHERE statut = 'validee'
-         GROUP BY CASE WHEN id_ordonnance IS NULL THEN 'Vente libre' ELSE 'Vente sur ordonnance' END""")
+         GROUP BY IF(id_ordonnance IS NULL, 'Vente libre', 'Vente sur ordonnance')""")
 
 
 def marge_par_medicament(user, limite: int = 15) -> list:
@@ -223,18 +234,27 @@ def couverture_stock(user) -> list:
          ORDER BY jours_de_couverture IS NULL, jours_de_couverture LIMIT 60""")
 
 
+_VENTES_PAR_MEDICAMENT = """
+    SELECT m.categorie AS categorie, m.nom_commercial AS nom_commercial, SUM(lv.quantite) AS quantite_vendue
+      FROM ligne_vente lv
+      JOIN vente v ON v.id_vente = lv.id_vente AND v.statut = 'validee'
+      JOIN stock s ON s.id_stock = lv.id_stock
+      JOIN medicament m ON m.id_medicament = s.id_medicament
+     GROUP BY m.id_medicament, m.categorie, m.nom_commercial"""
+
+
 def classement_categories(user) -> list:
-    """Classement des médicaments dans chaque catégorie (requête Q15)."""
-    return _lire(user, """
-        SELECT categorie, nom_commercial, quantite_vendue,
-               RANK() OVER (PARTITION BY categorie ORDER BY quantite_vendue DESC) AS rang_categorie
-          FROM (SELECT m.categorie, m.nom_commercial, SUM(lv.quantite) AS quantite_vendue
-                  FROM ligne_vente lv
-                  JOIN vente v ON v.id_vente = lv.id_vente AND v.statut = 'validee'
-                  JOIN stock s ON s.id_stock = lv.id_stock
-                  JOIN medicament m ON m.id_medicament = s.id_medicament
-                 GROUP BY m.id_medicament, m.categorie, m.nom_commercial) t
-         ORDER BY categorie, rang_categorie""")
+    """Classement des médicaments dans chaque catégorie (requête Q15).
+
+    Le rang = 1 + nombre de médicaments de la même catégorie vendus en plus grande quantité
+    (auto-jointure, sans RANK())."""
+    return _lire(user, f"""
+        SELECT a.categorie, a.nom_commercial, a.quantite_vendue, 1 + COUNT(b.nom_commercial) AS rang_categorie
+          FROM ({_VENTES_PAR_MEDICAMENT}) a
+          LEFT JOIN ({_VENTES_PAR_MEDICAMENT}) b
+                 ON b.categorie <=> a.categorie AND b.quantite_vendue > a.quantite_vendue
+         GROUP BY a.categorie, a.nom_commercial, a.quantite_vendue
+         ORDER BY a.categorie, rang_categorie, a.nom_commercial""")
 
 
 def affluence_par_heure(user) -> list:

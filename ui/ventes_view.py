@@ -35,7 +35,7 @@ class VentesView(ttk.Frame):
         self.combo_statut.current(0)
         self.combo_statut.pack(side="left", padx=6)
         self.combo_statut.bind("<<ComboboxSelected>>", lambda _e: self.actualiser())
-        ttk.Button(barre, text="Voir le ticket", command=self.voir_ticket).pack(side="left", padx=(10, 4))
+        ttk.Button(barre, text="Voir le ticket", style="Primary.TButton", command=self.voir_ticket).pack(side="left", padx=(10, 4))
         if self.peut_annuler:
             ttk.Button(barre, text="Annuler la vente", command=self.annuler).pack(side="left", padx=4)
         ttk.Button(barre, text="Actualiser", command=self.actualiser).pack(side="right")

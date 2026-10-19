@@ -10,6 +10,7 @@ from core.formatting import fmt_date, fmt_montant
 from core.permissions import can
 from services import stats_service, vente_service
 from ui.messages import essayer
+from ui.widgets import Tableau, creer_carte
 
 
 class DashboardView(ttk.Frame):
@@ -20,7 +21,7 @@ class DashboardView(ttk.Frame):
 
         haut = ttk.Frame(self)
         haut.pack(fill="x")
-        ttk.Label(haut, text="Tableau de bord", font=("Segoe UI", 16, "bold")).pack(side="left")
+        ttk.Label(haut, text="Tableau de bord", style="Titre.TLabel").pack(side="left")
         ttk.Button(haut, text="Actualiser", command=self.actualiser).pack(side="right")
 
         # --- cartes de chiffres clés ---
@@ -35,11 +36,9 @@ class DashboardView(ttk.Frame):
             ]
         self.valeurs = {}
         for i, (cle, titre) in enumerate(definitions):
-            cadre = ttk.LabelFrame(cartes, text=titre, padding=10)
-            cadre.grid(row=0, column=i, padx=4, sticky="nsew")
-            cartes.columnconfigure(i, weight=1)
             self.valeurs[cle] = tk.StringVar(value="–")
-            ttk.Label(cadre, textvariable=self.valeurs[cle], font=("Segoe UI", 18, "bold")).pack()
+            creer_carte(cartes, titre, self.valeurs[cle]).grid(row=0, column=i, padx=6, sticky="nsew")
+            cartes.columnconfigure(i, weight=1)
 
         # --- tableaux ---
         zone = ttk.Frame(self)
@@ -74,7 +73,7 @@ class DashboardView(ttk.Frame):
     def _table(parent, ligne, colonne, titre, colonnes, colspan=1):
         cadre = ttk.LabelFrame(parent, text=titre, padding=6)
         cadre.grid(row=ligne, column=colonne, columnspan=colspan, sticky="nsew", padx=4, pady=4)
-        arbre = ttk.Treeview(cadre, columns=[c[0] for c in colonnes], show="headings", height=6)
+        arbre = Tableau(cadre, columns=[c[0] for c in colonnes], show="headings", height=6)
         for cle, libelle, largeur, ancre in colonnes:
             arbre.heading(cle, text=libelle)
             arbre.column(cle, width=largeur, anchor=ancre)

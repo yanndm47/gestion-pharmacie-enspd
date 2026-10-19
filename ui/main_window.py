@@ -1,12 +1,14 @@
 """Fenêtre principale : les onglets affichés dépendent du rôle de l'utilisateur."""
 from tkinter import messagebox, ttk
 
+import config
 from core.permissions import can
 from services import auth_service
 from ui.caisse_view import CaisseView
 from ui.clients_view import ClientsView
 from ui.commandes_view import CommandesView
 from ui.comptes_view import ComptesView
+from ui.credits_view import CreditsView
 from ui.dashboard_view import DashboardView
 from ui.dialogs import FormulaireDialog
 from ui.messages import essayer
@@ -21,18 +23,19 @@ class MainWindow(ttk.Frame):
         super().__init__(master)
         self.user = user
 
-        entete = ttk.Frame(self, padding=(10, 6))
+        entete = ttk.Frame(self, style="Entete.TFrame", padding=(18, 10))
         entete.pack(fill="x")
-        ttk.Label(
-            entete,
-            text=f"{user.nom_complet}  –  {user.role_libelle}",
-            font=("Segoe UI", 10, "bold"),
-        ).pack(side="left")
-        ttk.Button(entete, text="Se déconnecter", command=on_logout).pack(side="right")
-        ttk.Button(entete, text="Mon mot de passe", command=self.changer_mot_de_passe).pack(side="right", padx=6)
+        ttk.Label(entete, text=config.ECOLE_SIGLE, style="Sigle.TLabel").pack(side="left")
+        ttk.Label(entete, text=f"  |  {config.APP_SOUS_TITRE}", style="Entete.TLabel").pack(side="left")
+        ttk.Button(entete, text="Se déconnecter", style="Entete.TButton", command=on_logout).pack(side="right")
+        ttk.Button(entete, text="Mon mot de passe", style="Entete.TButton",
+                   command=self.changer_mot_de_passe).pack(side="right", padx=8)
+        ttk.Label(entete, text=f"{user.nom_complet}  ·  {user.role_libelle}", style="Entete.TLabel").pack(
+            side="right", padx=14)
+        ttk.Frame(self, style="Jaune.TFrame", height=4).pack(fill="x")
 
         self.onglets = ttk.Notebook(self)
-        self.onglets.pack(fill="both", expand=True, padx=6, pady=(0, 6))
+        self.onglets.pack(fill="both", expand=True, padx=10, pady=(4, 10))
         self._construire_onglets()
 
     def changer_mot_de_passe(self):
@@ -78,3 +81,5 @@ class MainWindow(ttk.Frame):
             self._ajouter("Statistiques", StatistiquesView(nb, u))
         if can(u.role, "gerer_comptes"):
             self._ajouter("Comptes", ComptesView(nb, u))
+        # La page Crédits est visible par tous les profils.
+        self._ajouter("Crédits", CreditsView(nb, u))

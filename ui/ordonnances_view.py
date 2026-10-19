@@ -12,6 +12,7 @@ from services import catalogue_service, client_service, ordonnance_service
 from services.ordonnance_service import STATUTS, LigneOrdonnance
 from ui.dialogs import NouveauClientDialog
 from ui.messages import essayer
+from ui.widgets import Tableau
 
 
 class NouvelleOrdonnanceDialog(tk.Toplevel):
@@ -39,7 +40,7 @@ class NouvelleOrdonnanceDialog(tk.Toplevel):
 
         boutons = ttk.Frame(cadre)
         boutons.grid(row=3, column=0, sticky="e", pady=(10, 0))
-        ttk.Button(boutons, text="Enregistrer l'ordonnance", command=self._enregistrer).pack(side="left", padx=4)
+        ttk.Button(boutons, text="Enregistrer l'ordonnance", style="Accent.TButton", command=self._enregistrer).pack(side="left", padx=4)
         ttk.Button(boutons, text="Annuler", command=self.destroy).pack(side="left", padx=4)
         self.bind("<Escape>", lambda _e: self.destroy())
         try:
@@ -56,7 +57,7 @@ class NouvelleOrdonnanceDialog(tk.Toplevel):
         entree.grid(row=0, column=0, sticky="ew", padx=(0, 6))
         entree.bind("<Return>", lambda _e: self._rechercher_client())
         entree.focus_set()
-        ttk.Button(bloc, text="Rechercher", command=self._rechercher_client).grid(row=0, column=1)
+        ttk.Button(bloc, text="Rechercher", style="Primary.TButton", command=self._rechercher_client).grid(row=0, column=1)
         self.combo_client = ttk.Combobox(bloc, state="readonly")
         self.combo_client.grid(row=1, column=0, sticky="ew", padx=(0, 6), pady=6)
         self.combo_client.bind("<<ComboboxSelected>>", lambda _e: self._choisir_client())
@@ -107,11 +108,11 @@ class NouvelleOrdonnanceDialog(tk.Toplevel):
         ttk.Entry(milieu, textvariable=self.var_poso, width=34).grid(row=0, column=3, padx=4)
         ttk.Label(milieu, text="Durée (jours)").grid(row=0, column=4, padx=(8, 0))
         ttk.Entry(milieu, textvariable=self.var_duree, width=5).grid(row=0, column=5, padx=4)
-        ttk.Button(milieu, text="Ajouter la ligne", command=self._ajouter_ligne).grid(row=0, column=6, padx=8)
+        ttk.Button(milieu, text="Ajouter la ligne", style="Primary.TButton", command=self._ajouter_ligne).grid(row=0, column=6, padx=8)
 
         colonnes = [("nom", "Médicament", 200, "w"), ("qte", "Qté", 50, "e"),
                     ("poso", "Posologie", 280, "w"), ("duree", "Durée", 60, "e")]
-        self.arbre = ttk.Treeview(bloc, columns=[c[0] for c in colonnes], show="headings",
+        self.arbre = Tableau(bloc, columns=[c[0] for c in colonnes], show="headings",
                                   height=6, selectmode="browse")
         for cle, libelle, largeur, ancre in colonnes:
             self.arbre.heading(cle, text=libelle)
@@ -258,8 +259,8 @@ class OrdonnancesView(ttk.Frame):
         entree = ttk.Entry(barre, textvariable=self.var_terme)
         entree.grid(row=0, column=2, sticky="ew")
         entree.bind("<Return>", lambda _e: self.actualiser())
-        ttk.Button(barre, text="Rechercher", command=self.actualiser).grid(row=0, column=3, padx=6)
-        ttk.Button(barre, text="Nouvelle ordonnance", command=self.nouvelle_ordonnance).grid(row=0, column=4)
+        ttk.Button(barre, text="Rechercher", style="Primary.TButton", command=self.actualiser).grid(row=0, column=3, padx=6)
+        ttk.Button(barre, text="Nouvelle ordonnance", style="Primary.TButton", command=self.nouvelle_ordonnance).grid(row=0, column=4)
 
         # --- liste ---
         cadre = ttk.LabelFrame(self, text="Ordonnances", padding=6)
@@ -269,7 +270,7 @@ class OrdonnancesView(ttk.Frame):
         colonnes = [("id", "N°", 50, "e"), ("date", "Prescrite le", 90, "center"),
                     ("validite", "Valable jusqu'au", 110, "center"), ("client", "Client", 200, "w"),
                     ("medecin", "Médecin", 170, "w"), ("statut", "Statut", 100, "w")]
-        self.arbre = ttk.Treeview(cadre, columns=[c[0] for c in colonnes], show="headings",
+        self.arbre = Tableau(cadre, columns=[c[0] for c in colonnes], show="headings",
                                   selectmode="browse")
         for cle, libelle, largeur, ancre in colonnes:
             self.arbre.heading(cle, text=libelle)
@@ -291,7 +292,7 @@ class OrdonnancesView(ttk.Frame):
         colonnes_d = [("nom", "Médicament", 200, "w"), ("prescrit", "Prescrit", 70, "e"),
                       ("delivre", "Délivré", 70, "e"), ("reste", "Reste", 60, "e"),
                       ("poso", "Posologie", 300, "w"), ("duree", "Durée (j)", 70, "e")]
-        self.arbre_detail = ttk.Treeview(cadre_d, columns=[c[0] for c in colonnes_d],
+        self.arbre_detail = Tableau(cadre_d, columns=[c[0] for c in colonnes_d],
                                          show="headings", height=5)
         for cle, libelle, largeur, ancre in colonnes_d:
             self.arbre_detail.heading(cle, text=libelle)

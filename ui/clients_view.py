@@ -35,8 +35,8 @@ class ClientsView(ttk.Frame):
         entree = ttk.Entry(barre, textvariable=self.var_terme)
         entree.grid(row=0, column=1, sticky="ew")
         entree.bind("<Return>", lambda _e: self.actualiser())
-        ttk.Button(barre, text="Rechercher", command=self.actualiser).grid(row=0, column=2, padx=6)
-        ttk.Button(barre, text="Nouveau client", command=self.nouveau).grid(row=0, column=3)
+        ttk.Button(barre, text="Rechercher", style="Primary.TButton", command=self.actualiser).grid(row=0, column=2, padx=6)
+        ttk.Button(barre, text="Nouveau client", style="Primary.TButton", command=self.nouveau).grid(row=0, column=3)
         ttk.Button(barre, text="Modifier", command=self.modifier).grid(row=0, column=4, padx=(6, 0))
 
         cadre = ttk.LabelFrame(self, text="Clients", padding=6)

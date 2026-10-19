@@ -8,8 +8,8 @@
 --
 --  Les "résultats attendus" ci-dessous sont ceux du jeu de test du script 03,
 --  lorsque la base vient d'être créée (aucun test du script 04 laissé en base).
---  Prérequis : MySQL 8.0+ ou MariaDB 10.2+ (fonctions de fenêtrage : LAG, RANK,
---  SUM() OVER).
+--  Compatible : MySQL 5.7, MySQL 8 et MariaDB. Aucune fonction de fenêtrage (LAG, RANK,
+--  OVER) n'est utilisée, pour que toutes les requêtes fonctionnent sur toutes ces versions.
 --
 --  Règle commune : on ne compte que les ventes au statut 'validee'.
 --  Les ventes annulées sont exclues de tous les indicateurs.
@@ -51,22 +51,22 @@ SELECT DATE(date_vente)       AS jour,
 -- =====================================================================
 -- Q2. Chiffre d'affaires par mois et évolution                 [F-32]
 --     Objectif : mesurer la croissance d'un mois à l'autre.
---     Technique : sous-requête dans FROM + fonction de fenêtrage LAG().
+--     Technique : deux sous-requêtes dans FROM et auto-jointure sur le mois précédent.
 --     Résultat attendu : 1 ligne (mois courant), évolution vide (pas de mois précédent)
 -- =====================================================================
-SELECT mois,
-       chiffre_affaires,
-       LAG(chiffre_affaires) OVER (ORDER BY mois) AS ca_mois_precedent,
-       ROUND(100 * (chiffre_affaires - LAG(chiffre_affaires) OVER (ORDER BY mois))
-                 / NULLIF(LAG(chiffre_affaires) OVER (ORDER BY mois), 0), 1) AS evolution_pct
-  FROM (
-        SELECT DATE_FORMAT(date_vente, '%Y-%m') AS mois,
-               SUM(total)                       AS chiffre_affaires
-          FROM vente
-         WHERE statut = 'validee'
-         GROUP BY DATE_FORMAT(date_vente, '%Y-%m')
-       ) t
- ORDER BY mois;
+SELECT CONCAT(t.annee, '-', LPAD(t.mois_num, 2, '0')) AS mois,
+       t.chiffre_affaires,
+       p.chiffre_affaires AS ca_mois_precedent,
+       ROUND(100 * (t.chiffre_affaires - p.chiffre_affaires)
+                 / NULLIF(p.chiffre_affaires, 0), 1) AS evolution_pct
+  FROM (SELECT YEAR(date_vente) AS annee, MONTH(date_vente) AS mois_num, SUM(total) AS chiffre_affaires
+          FROM vente WHERE statut = 'validee'
+         GROUP BY YEAR(date_vente), MONTH(date_vente)) t
+  LEFT JOIN (SELECT YEAR(date_vente) AS annee, MONTH(date_vente) AS mois_num, SUM(total) AS chiffre_affaires
+               FROM vente WHERE statut = 'validee'
+              GROUP BY YEAR(date_vente), MONTH(date_vente)) p
+         ON p.annee * 12 + p.mois_num = t.annee * 12 + t.mois_num - 1
+ ORDER BY t.annee, t.mois_num;
 
 -- =====================================================================
 -- Q3. Chiffre d'affaires par semaine                           [F-32]
@@ -153,14 +153,14 @@ SELECT a.nom_commercial,
 -- =====================================================================
 -- Q8. Ventes par membre du personnel et part du chiffre d'affaires  [F-36]
 --     Objectif : mesurer la contribution de chacun.
---     Technique : LEFT JOIN (garde ceux qui n'ont rien vendu), SUM() OVER ().
+--     Technique : LEFT JOIN (garde ceux qui n'ont rien vendu), sous-requête scalaire pour le total.
 --     Résultat attendu : Dupont 2 ventes 107000 (89.9 %), Ngono 1 vente 12000 (10.1 %), Admin 0 (0.0 %)
 -- =====================================================================
 SELECT p.nom, p.prenom, p.role,
        COUNT(v.id_vente)                AS nb_ventes,
        COALESCE(SUM(v.total), 0)        AS montant,
        ROUND(100 * COALESCE(SUM(v.total), 0)
-                 / NULLIF(SUM(SUM(v.total)) OVER (), 0), 1) AS part_ca_pct
+                 / NULLIF((SELECT SUM(total) FROM vente WHERE statut = 'validee'), 0), 1) AS part_ca_pct
   FROM personnel p
   LEFT JOIN vente v ON v.id_personnel = p.id_personnel AND v.statut = 'validee'
  GROUP BY p.id_personnel, p.nom, p.prenom, p.role
@@ -213,18 +213,16 @@ SELECT f.id_fournisseur,
 -- =====================================================================
 -- Q11. Ventes sur ordonnance et ventes libres                  [F-39]
 --     Objectif : connaître la part de l'activité réglementée.
---     Technique : CASE dans le GROUP BY, SUM(COUNT(*)) OVER () pour le pourcentage.
+--     Technique : IF dans le GROUP BY, sous-requête scalaire pour le pourcentage.
 --     Résultat attendu : Vente libre 2 ventes, 18900 (66.7 %) ; sur ordonnance 1 vente, 100100 (33.3 %)
 -- =====================================================================
-SELECT CASE WHEN id_ordonnance IS NULL THEN 'Vente libre'
-            ELSE 'Vente sur ordonnance' END       AS type_vente,
+SELECT IF(id_ordonnance IS NULL, 'Vente libre', 'Vente sur ordonnance') AS type_vente,
        COUNT(*)                                   AS nb_ventes,
        SUM(total)                                 AS chiffre_affaires,
-       ROUND(100 * COUNT(*) / SUM(COUNT(*)) OVER (), 1) AS part_ventes_pct
+       ROUND(100 * COUNT(*) / (SELECT COUNT(*) FROM vente WHERE statut = 'validee'), 1) AS part_ventes_pct
   FROM vente
  WHERE statut = 'validee'
- GROUP BY CASE WHEN id_ordonnance IS NULL THEN 'Vente libre'
-               ELSE 'Vente sur ordonnance' END;
+ GROUP BY IF(id_ordonnance IS NULL, 'Vente libre', 'Vente sur ordonnance');
 
 -- =====================================================================
 -- Q12. Marge brute par médicament (bonus)
@@ -295,20 +293,25 @@ SELECT sd.nom_commercial,
 -- =====================================================================
 -- Q15. Classement des médicaments au sein de chaque catégorie (bonus)
 --     Objectif : comparer les produits d'une même famille thérapeutique.
---     Technique : RANK() OVER (PARTITION BY ...).
+--     Technique : auto-jointure (rang = 1 + nombre de médicaments mieux vendus dans la même catégorie).
 --     Résultat attendu : un rang 1 par catégorie vendue (ex. Antibiotique : Amoxicilline Biogaran)
 -- =====================================================================
-SELECT categorie, nom_commercial, quantite_vendue,
-       RANK() OVER (PARTITION BY categorie ORDER BY quantite_vendue DESC) AS rang_categorie
-  FROM (
-        SELECT m.categorie, m.nom_commercial, SUM(lv.quantite) AS quantite_vendue
+SELECT a.categorie, a.nom_commercial, a.quantite_vendue, 1 + COUNT(b.nom_commercial) AS rang_categorie
+  FROM (SELECT m.categorie AS categorie, m.nom_commercial AS nom_commercial, SUM(lv.quantite) AS quantite_vendue
           FROM ligne_vente lv
           JOIN vente v      ON v.id_vente = lv.id_vente AND v.statut = 'validee'
           JOIN stock s      ON s.id_stock = lv.id_stock
           JOIN medicament m ON m.id_medicament = s.id_medicament
-         GROUP BY m.id_medicament, m.categorie, m.nom_commercial
-       ) t
- ORDER BY categorie, rang_categorie;
+         GROUP BY m.id_medicament, m.categorie, m.nom_commercial) a
+  LEFT JOIN (SELECT m.categorie AS categorie, m.nom_commercial AS nom_commercial, SUM(lv.quantite) AS quantite_vendue
+               FROM ligne_vente lv
+               JOIN vente v      ON v.id_vente = lv.id_vente AND v.statut = 'validee'
+               JOIN stock s      ON s.id_stock = lv.id_stock
+               JOIN medicament m ON m.id_medicament = s.id_medicament
+              GROUP BY m.id_medicament, m.categorie, m.nom_commercial) b
+         ON b.categorie <=> a.categorie AND b.quantite_vendue > a.quantite_vendue
+ GROUP BY a.categorie, a.nom_commercial, a.quantite_vendue
+ ORDER BY a.categorie, rang_categorie, a.nom_commercial;
 
 -- =====================================================================
 -- Q16. Affluence par heure de la journée (bonus)

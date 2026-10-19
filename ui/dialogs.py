@@ -27,7 +27,7 @@ class NouveauClientDialog(tk.Toplevel):
             ttk.Entry(cadre, textvariable=self.vars[cle], width=26).grid(row=i, column=1, pady=5)
         boutons = ttk.Frame(cadre)
         boutons.grid(row=len(libelles), column=0, columnspan=2, pady=(12, 0))
-        ttk.Button(boutons, text="Créer", command=self._creer).pack(side="left", padx=4)
+        ttk.Button(boutons, text="Créer", style="Accent.TButton", command=self._creer).pack(side="left", padx=4)
         ttk.Button(boutons, text="Annuler", command=self.destroy).pack(side="left", padx=4)
         self.bind("<Return>", lambda _e: self._creer())
         self.bind("<Escape>", lambda _e: self.destroy())
@@ -90,7 +90,7 @@ class FormulaireDialog(tk.Toplevel):
             self.vars[cle] = var
         boutons = ttk.Frame(cadre)
         boutons.grid(row=len(champs), column=0, columnspan=2, pady=(12, 0))
-        ttk.Button(boutons, text="Enregistrer", command=self._valider).pack(side="left", padx=4)
+        ttk.Button(boutons, text="Enregistrer", style="Accent.TButton", command=self._valider).pack(side="left", padx=4)
         ttk.Button(boutons, text="Annuler", command=self.destroy).pack(side="left", padx=4)
         self.bind("<Return>", lambda _e: self._valider())
         self.bind("<Escape>", lambda _e: self.destroy())

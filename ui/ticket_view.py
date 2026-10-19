@@ -25,7 +25,7 @@ class TicketDialog(tk.Toplevel):
         boutons = ttk.Frame(cadre)
         boutons.pack(fill="x", pady=(10, 0))
         ttk.Button(boutons, text="Enregistrer…", command=self.enregistrer).pack(side="left")
-        ttk.Button(boutons, text="Imprimer", command=self.imprimer).pack(side="left", padx=6)
+        ttk.Button(boutons, text="Imprimer", style="Primary.TButton", command=self.imprimer).pack(side="left", padx=6)
         ttk.Button(boutons, text="Fermer", command=self.destroy).pack(side="right")
         self.bind("<Escape>", lambda _e: self.destroy())
 

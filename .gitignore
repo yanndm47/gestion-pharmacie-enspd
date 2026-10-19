@@ -1,5 +1,14 @@
+# Environnement Python
 .venv/
+venv/
 __pycache__/
 *.pyc
+
+# Éditeurs
 .idea/
 .vscode/
+
+# Fichiers locaux (ne jamais publier d'identifiants)
+.env
+*.local.*
+*.log

@@ -9,7 +9,7 @@ définissez des variables d'environnement avant de lancer l'application :
 """
 import os
 
-APP_TITLE = "Pharmacie – Gestion"
+APP_TITLE = "ENSPD – Gestion d'une pharmacie"
 
 DB_HOST = os.getenv("PHARMA_DB_HOST", "localhost")
 DB_PORT = int(os.getenv("PHARMA_DB_PORT", "3306"))
@@ -26,3 +26,24 @@ VALIDITE_ORDONNANCE_JOURS = 14
 
 # Nom affiché sur les tickets de caisse
 NOM_PHARMACIE = os.getenv("PHARMA_NOM", "Pharmacie")
+
+# --- Identité de l'application et de l'école ---------------------------------------------------
+ECOLE_SIGLE = "ENSPD"
+ECOLE_NOM = "École Nationale Supérieure Polytechnique de Douala"
+APP_VERSION = "2.0"
+APP_SOUS_TITRE = "Gestion d'une pharmacie"
+MATIERE = "Bases de données"
+
+# Équipe du projet (page Crédits, visible par tous les profils)
+EQUIPE = [
+    "YANN RAÏS DIKOUME MAYIBA",
+    "MOLO BLAISE EMMANUEL",
+    "BISAI BI MAHOP JOHN JOICE",
+    "MOUKOKO NGALLE",
+    "FOUMAN NGA",
+    "DOUNGMENE ZOMESSI",
+    "ATANGAGNA ADA SHAUN",
+    "RYAN EKE NAMEKONG",
+    "KOUNYEB EKEMBENGUE ROSINE GAËLLE",
+    "ZE ZE CALIXT JAURES",
+]

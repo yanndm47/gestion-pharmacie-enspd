@@ -49,19 +49,25 @@ def parse_decimal(texte: str):
 
 
 def fmt_valeur(valeur, genre: str = "texte") -> str:
-    """Affichage selon le genre : texte, int, montant, date, datetime, pct, decimal."""
+    """Affichage selon le genre : texte, int, montant, date, datetime, pct, decimal.
+
+    Ne lève jamais d'exception : une valeur inattendue est simplement affichée telle quelle.
+    """
     if valeur is None:
         return ""
-    if genre == "montant":
-        return fmt_montant(valeur)
-    if genre == "int":
-        return str(int(valeur))
-    if genre == "date":
-        return fmt_date(valeur)
-    if genre == "datetime":
-        return valeur.strftime("%d/%m/%Y %H:%M") if hasattr(valeur, "strftime") else str(valeur)
-    if genre == "pct":
-        return f"{Decimal(str(valeur)):.1f} %".replace(".", ",")
-    if genre == "decimal":
-        return f"{Decimal(str(valeur)):.1f}".replace(".", ",")
+    try:
+        if genre == "montant":
+            return fmt_montant(valeur)
+        if genre == "int":
+            return str(int(valeur))
+        if genre == "date":
+            return fmt_date(valeur)
+        if genre == "datetime":
+            return valeur.strftime("%d/%m/%Y %H:%M") if hasattr(valeur, "strftime") else str(valeur)
+        if genre == "pct":
+            return f"{Decimal(str(valeur)):.1f} %".replace(".", ",")
+        if genre == "decimal":
+            return f"{Decimal(str(valeur)):.1f}".replace(".", ",")
+    except (ValueError, TypeError, ArithmeticError):
+        return str(valeur)
     return str(valeur)

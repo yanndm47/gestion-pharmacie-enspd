@@ -1,11 +1,11 @@
 """Statistiques : 13 analyses (script SQL 05) sous forme de tableau et de diagramme."""
 import tkinter as tk
-from tkinter import ttk
+from tkinter import messagebox, ttk
 
+from core.errors import BusinessError
 from core.formatting import fmt_valeur
 from services import stats_service as st
 from ui.charts import BarChart
-from ui.messages import essayer
 from ui.widgets import creer_arbre
 
 # (titre, fonction, colonnes, graphique)
@@ -97,9 +97,22 @@ class StatistiquesView(ttk.Frame):
         if indice < 0:
             return
         titre, fonction, colonnes, graphique = ANALYSES[indice]
-        ok, lignes = essayer(self, fonction, self.user)
-        if not ok:
+        try:
+            lignes = fonction(self.user)
+        except BusinessError as erreur:
+            messagebox.showwarning(f"Analyse « {titre} »", str(erreur), parent=self)
             return
+        except Exception as erreur:        # on indique QUELLE analyse échoue et pourquoi
+            messagebox.showerror(f"Analyse « {titre} » impossible", f"{type(erreur).__name__} : {erreur}",
+                                 parent=self)
+            return
+        try:
+            self._afficher(titre, lignes, colonnes, graphique)
+        except Exception as erreur:
+            messagebox.showerror(f"Analyse « {titre} »", f"Affichage impossible : {type(erreur).__name__} : {erreur}",
+                                 parent=self)
+
+    def _afficher(self, titre, lignes, colonnes, graphique):
         if self.tableau is not None:
             self.tableau.destroy()
         self.tableau = creer_arbre(self.zone, [(c[0], c[1], c[3], c[4]) for c in colonnes])

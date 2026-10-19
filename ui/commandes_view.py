@@ -64,7 +64,7 @@ class NouvelleCommandeDialog(tk.Toplevel):
         ttk.Spinbox(ligne2, from_=1, to=99999, textvariable=self.var_qte, width=7).grid(row=0, column=1, padx=4)
         ttk.Label(ligne2, text="Prix d'achat prévu (facultatif)").grid(row=0, column=2, padx=(10, 0))
         ttk.Entry(ligne2, textvariable=self.var_prix, width=10).grid(row=0, column=3, padx=4)
-        ttk.Button(ligne2, text="Ajouter la ligne", command=self._ajouter).grid(row=0, column=4, padx=8)
+        ttk.Button(ligne2, text="Ajouter la ligne", style="Primary.TButton", command=self._ajouter).grid(row=0, column=4, padx=8)
         cadre_t = creer_arbre(bloc, [("nom", "Médicament", 260, "w"), ("qte", "Quantité", 80, "e"),
                                      ("prix", "Prix prévu", 90, "e")], height=6)
         cadre_t.grid(row=2, column=0, sticky="nsew")
@@ -73,7 +73,7 @@ class NouvelleCommandeDialog(tk.Toplevel):
 
         boutons = ttk.Frame(cadre)
         boutons.grid(row=2, column=0, sticky="e", pady=(10, 0))
-        ttk.Button(boutons, text="Enregistrer la commande", command=self._enregistrer).pack(side="left", padx=4)
+        ttk.Button(boutons, text="Enregistrer la commande", style="Accent.TButton", command=self._enregistrer).pack(side="left", padx=4)
         ttk.Button(boutons, text="Annuler", command=self.destroy).pack(side="left", padx=4)
         self.bind("<Escape>", lambda _e: self.destroy())
         try:
@@ -175,7 +175,7 @@ class ReceptionDialog(tk.Toplevel):
             ttk.Entry(cadre, textvariable=self.vars[cle], width=24).grid(row=i, column=1, sticky="w", pady=5)
         boutons = ttk.Frame(cadre)
         boutons.grid(row=len(champs) + 1, column=0, columnspan=2, pady=(12, 0))
-        ttk.Button(boutons, text="Enregistrer la réception", command=self._enregistrer).pack(side="left", padx=4)
+        ttk.Button(boutons, text="Enregistrer la réception", style="Accent.TButton", command=self._enregistrer).pack(side="left", padx=4)
         ttk.Button(boutons, text="Annuler", command=self.destroy).pack(side="left", padx=4)
         self.bind("<Escape>", lambda _e: self.destroy())
         if lignes:
@@ -235,8 +235,8 @@ class CommandesPanel(ttk.Frame):
         self.combo.current(0)
         self.combo.pack(side="left")
         self.combo.bind("<<ComboboxSelected>>", lambda _e: self.actualiser())
-        ttk.Button(barre, text="Nouvelle commande", command=self.nouvelle).pack(side="left", padx=(10, 4))
-        ttk.Button(barre, text="Réceptionner…", command=self.receptionner).pack(side="left", padx=4)
+        ttk.Button(barre, text="Nouvelle commande", style="Primary.TButton", command=self.nouvelle).pack(side="left", padx=(10, 4))
+        ttk.Button(barre, text="Réceptionner…", style="Primary.TButton", command=self.receptionner).pack(side="left", padx=4)
         ttk.Button(barre, text="Annuler la commande", command=self.annuler).pack(side="left", padx=4)
         ttk.Button(barre, text="Actualiser", command=self.actualiser).pack(side="right")
 
@@ -349,7 +349,7 @@ class FournisseursPanel(ttk.Frame):
         self.rowconfigure(1, weight=1)
         barre = ttk.Frame(self)
         barre.grid(row=0, column=0, sticky="ew", pady=(0, 6))
-        ttk.Button(barre, text="Nouveau fournisseur", command=self.nouveau).pack(side="left")
+        ttk.Button(barre, text="Nouveau fournisseur", style="Primary.TButton", command=self.nouveau).pack(side="left")
         ttk.Button(barre, text="Modifier", command=self.modifier).pack(side="left", padx=6)
         ttk.Button(barre, text="Désactiver / Réactiver", command=self.basculer).pack(side="left")
         ttk.Button(barre, text="Actualiser", command=self.actualiser).pack(side="right")

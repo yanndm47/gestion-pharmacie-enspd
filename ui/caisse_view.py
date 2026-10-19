@@ -14,6 +14,7 @@ from services import catalogue_service, client_service, ordonnance_service, vent
 from services.vente_service import MODES_PAIEMENT, LigneDemandee
 from ui.dialogs import NouveauClientDialog
 from ui.messages import essayer
+from ui.widgets import Tableau
 from ui.ticket_view import TicketDialog
 
 
@@ -66,7 +67,7 @@ class CaisseView(ttk.Frame):
         zone.grid(row=1, column=0, sticky="nsew", pady=6)
         zone.columnconfigure(0, weight=1)
         zone.rowconfigure(0, weight=1)
-        self.arbre_cat = ttk.Treeview(zone, columns=[c[0] for c in colonnes],
+        self.arbre_cat = Tableau(zone, columns=[c[0] for c in colonnes],
                                       show="headings", selectmode="browse")
         for cle, libelle, largeur, ancre in colonnes:
             self.arbre_cat.heading(cle, text=libelle)
@@ -83,7 +84,7 @@ class CaisseView(ttk.Frame):
         ttk.Label(bas, text="Quantité :").pack(side="left")
         self.var_qte = tk.StringVar(value="1")
         ttk.Spinbox(bas, from_=1, to=999, textvariable=self.var_qte, width=6).pack(side="left", padx=6)
-        ttk.Button(bas, text="Ajouter au panier", command=self.ajouter_au_panier).pack(side="left", padx=6)
+        ttk.Button(bas, text="Ajouter au panier", style="Primary.TButton", command=self.ajouter_au_panier).pack(side="left", padx=6)
         ttk.Label(bas, text="(ou double-clic sur la ligne)", foreground="#6b7280").pack(side="left")
 
     def _recherche_differee(self, _event=None):
@@ -122,7 +123,7 @@ class CaisseView(ttk.Frame):
         entree = ttk.Entry(cadre, textvariable=self.var_client)
         entree.grid(row=0, column=0, sticky="ew", padx=(0, 6))
         entree.bind("<Return>", lambda _e: self.rechercher_client())
-        ttk.Button(cadre, text="Rechercher", command=self.rechercher_client).grid(row=0, column=1)
+        ttk.Button(cadre, text="Rechercher", style="Primary.TButton", command=self.rechercher_client).grid(row=0, column=1)
         self.combo_client = ttk.Combobox(cadre, state="readonly")
         self.combo_client.grid(row=1, column=0, sticky="ew", padx=(0, 6), pady=6)
         self.combo_client.bind("<<ComboboxSelected>>", lambda _e: self._choisir_client())
@@ -152,7 +153,7 @@ class CaisseView(ttk.Frame):
         cadre_p.rowconfigure(0, weight=1)
         colonnes = [("nom", "Médicament", 170, "w"), ("qte", "Qté", 45, "e"),
                     ("prix", "Prix", 65, "e"), ("sous", "Sous-total", 85, "e")]
-        self.arbre_panier = ttk.Treeview(cadre_p, columns=[c[0] for c in colonnes],
+        self.arbre_panier = Tableau(cadre_p, columns=[c[0] for c in colonnes],
                                          show="headings", height=7, selectmode="browse")
         for cle, libelle, largeur, ancre in colonnes:
             self.arbre_panier.heading(cle, text=libelle)
@@ -169,7 +170,7 @@ class CaisseView(ttk.Frame):
         bas.columnconfigure(1, weight=1)
         ttk.Label(bas, text="Total :", font=("Segoe UI", 13)).grid(row=0, column=0, sticky="w")
         self.var_total = tk.StringVar(value="0")
-        ttk.Label(bas, textvariable=self.var_total, font=("Segoe UI", 20, "bold")).grid(
+        ttk.Label(bas, textvariable=self.var_total, style="Total.TLabel").grid(
             row=0, column=1, sticky="e")
         ttk.Label(bas, text="Paiement :").grid(row=1, column=0, sticky="w", pady=6)
         self.modes_par_libelle = {libelle: cle for cle, libelle in MODES_PAIEMENT.items()}
@@ -177,7 +178,7 @@ class CaisseView(ttk.Frame):
                                            values=list(self.modes_par_libelle))
         self.combo_paiement.current(0)
         self.combo_paiement.grid(row=1, column=1, sticky="e")
-        ttk.Button(bas, text="Valider la vente", command=self.valider_vente).grid(
+        ttk.Button(bas, text="Valider la vente", style="Accent.TButton", command=self.valider_vente).grid(
             row=2, column=0, columnspan=2, sticky="ew", ipady=6, pady=(4, 0))
 
     # ------------------------------------------------------------------

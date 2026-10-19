@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 
 import config
+from ui import theme
 from ui.login_view import LoginView
 from services import maintenance_service
 from ui.main_window import MainWindow
@@ -13,12 +14,9 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title(config.APP_TITLE)
-        self.geometry("1180x720")
-        self.minsize(980, 620)
-        try:
-            ttk.Style(self).theme_use("clam")
-        except tk.TclError:
-            pass
+        self.geometry("1240x780")
+        self.minsize(1000, 650)
+        theme.appliquer(self)
         self._contenu = None
         self.afficher_login()
 
