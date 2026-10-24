@@ -12,8 +12,6 @@ Projet de groupe de la matière **Bases de données**.
 |---|---|---|
 | ![Connexion](docs/captures/connexion.png) | ![Caisse](docs/captures/caisse.png) | ![Tableau de bord](docs/captures/tableau-de-bord.png) |
 
-> Les captures sont à ajouter dans `docs/captures/` (voir `docs/README.md`).
-
 ## Fonctionnalités
 
 - **Caisse** : recherche de médicaments, panier, client, paiement, ticket de caisse ; les lots sont vendus dans l'ordre de péremption (FEFO).
