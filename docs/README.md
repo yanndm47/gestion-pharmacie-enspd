@@ -1,7 +1,5 @@
 # Documentation du projet
 
-Les documents ci-dessous sont à exporter en PDF depuis leur page puis à déposer dans ce dossier.
-
 | Document | Contenu |
 |---|---|
 | Cahier des charges (v2.0) | Besoins, périmètre, fonctionnalités, planning, risques |
@@ -10,11 +8,6 @@ Les documents ci-dessous sont à exporter en PDF depuis leur page puis à dépos
 | Manuel d'utilisation et guide technique | Guide par tâche, architecture, dépannage, scénario de démonstration |
 | Rapport final | Rapport de projet complet |
 | Support de soutenance | Diaporama de 7 diapositives |
-
-## Captures d'écran
-
-Déposez dans `captures/` les images utilisées par le README principal :
-`connexion.png`, `caisse.png`, `tableau-de-bord.png` (et toute autre capture utile : ticket, ordonnances, statistiques, crédits).
 
 ## Travail en équipe sur GitHub
 
